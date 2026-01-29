@@ -8,7 +8,7 @@ from tqdm import tqdm
 import contextlib
 
 # Add parent directory to path to import gemma modules
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from gemma import config
 from gemma import model as gemma_model
