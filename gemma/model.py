@@ -117,6 +117,7 @@ class Linear(nn.Module):
 
     def __init__(self, in_features: int, out_features: int, quant: bool):
         super().__init__()
+        self.quant = quant
         if quant:
             self.weight = nn.Parameter(
                 torch.empty((out_features, in_features), dtype=torch.int8),
@@ -126,9 +127,13 @@ class Linear(nn.Module):
         else:
             self.weight = nn.Parameter(
                 torch.empty((out_features, in_features)),
-                requires_grad=False,
+                requires_grad=True,
             )
-        self.quant = quant
+        self.reset_parameters()
+
+    def reset_parameters(self):
+        if not self.quant:
+            nn.init.normal_(self.weight, std=0.02)
 
     def forward(self, x):
         weight = self.weight
@@ -142,6 +147,7 @@ class Embedding(nn.Module):
 
     def __init__(self, num_embeddings: int, embedding_dim: int, quant: bool):
         super().__init__()
+        self.quant = quant
         if quant:
             self.weight = nn.Parameter(
                 torch.empty((num_embeddings, embedding_dim), dtype=torch.int8),
@@ -151,9 +157,13 @@ class Embedding(nn.Module):
         else:
             self.weight = nn.Parameter(
                 torch.empty((num_embeddings, embedding_dim)),
-                requires_grad=False,
+                requires_grad=True,
             )
-        self.quant = quant
+        self.reset_parameters()
+
+    def reset_parameters(self):
+        if not self.quant:
+            nn.init.normal_(self.weight, std=0.02)
 
     def forward(self, x):
         weight = self.weight
