@@ -14,7 +14,8 @@ class SplitBrainDataset(Dataset):
         sliding_window_step: int = 512,
         cache_dir: str = ".cache",
         force_process: bool = False,
-        split: str = "train"
+        split: str = "train",
+        max_samples: int = None
     ):
         """
         Args:
@@ -25,6 +26,7 @@ class SplitBrainDataset(Dataset):
             cache_dir: Directory to store pickle cache.
             force_process: If True, ignore cache and re-process.
             split: 'train', 'validation', or 'test' (used if data_path is a directory).
+            max_samples: If set, limit the number of samples loaded/processed.
         """
         self.seq_len = seq_len
         self.sliding_window_step = sliding_window_step
@@ -71,6 +73,14 @@ class SplitBrainDataset(Dataset):
             all_token_ids = []
             print(f"Found {len(files_to_read)} files.")
             
+            # Approximate target tokens needed
+            target_tokens = None
+            if max_samples:
+                # Samples = (Tokens - SeqLen) / Step + 1
+                # Tokens = (Samples - 1) * Step + SeqLen
+                target_tokens = (max_samples - 1) * sliding_window_step + seq_len
+                print(f"Targeting approx {target_tokens} tokens for {max_samples} samples.")
+
             # Process files
             for file_path in tqdm(files_to_read, desc="Tokenizing files"):
                  with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
@@ -78,12 +88,22 @@ class SplitBrainDataset(Dataset):
                  # Encode and append EOS
                  tokens = self.tokenizer.encode(text, bos=True, eos=True)
                  all_token_ids.extend(tokens)
+                 
+                 if target_tokens and len(all_token_ids) >= target_tokens:
+                     print(f"Reached target token count ({len(all_token_ids)} >= {target_tokens}). Stopping.")
+                     break
             
             self.token_ids = all_token_ids
             
             print(f"Saving dataset to {cache_path}")
             with open(cache_path, "wb") as f:
                 pickle.dump(self.token_ids, f)
+
+        # Apply max_samples limit even if loaded from cache
+        if max_samples:
+             target_tokens = (max_samples - 1) * sliding_window_step + seq_len
+             if len(self.token_ids) > target_tokens:
+                 self.token_ids = self.token_ids[:target_tokens]
 
         # Calculate number of samples
         self.num_samples = max(0, (len(self.token_ids) - self.seq_len) // self.sliding_window_step + 1)

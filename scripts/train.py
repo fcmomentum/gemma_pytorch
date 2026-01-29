@@ -46,7 +46,9 @@ def train(args):
         tokenizer_path=args.tokenizer_path,
         seq_len=args.seq_len,
         sliding_window_step=args.seq_len // 2, # 50% overlap default
-        split="train"
+        split="train",
+        cache_dir=args.dataset_cache_dir,
+        max_samples=args.max_samples
     )
     dataloader = DataLoader(dataset, batch_size=args.batch_size, shuffle=True)
 
@@ -243,6 +245,8 @@ if __name__ == "__main__":
     parser.add_argument("--memory_layer", type=int, default=10, help="Layer index for memory loss")
     parser.add_argument("--memory_lag", type=int, default=1, help="Lag k for memory loss")
     parser.add_argument("--save_path", type=str, default="model_finetuned.pt", help="Save path")
+    parser.add_argument("--dataset_cache_dir", type=str, default=".cache", help="Dataset cache dir")
+    parser.add_argument("--max_samples", type=int, default=None, help="Max samples to process")
 
     args = parser.parse_args()
     train(args)
