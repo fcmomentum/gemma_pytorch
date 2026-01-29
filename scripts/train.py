@@ -134,7 +134,7 @@ def train(args):
             _, _, all_hidden_states = model(
                 input_token_ids=input_ids,
                 input_positions=input_positions,
-                kv_write_indices=input_positions, # Write all
+                kv_write_indices=input_positions[0], # Write all positions, must be 1D for index_copy_
                 kv_caches=kv_caches,
                 mask=mask,
                 output_positions=torch.tensor([seq_len-1], device=device), # Dummy
