@@ -628,8 +628,7 @@ class GemmaForCausalLM(nn.Module):
             top_ps=top_ps,
             top_ks=top_ks,
         )
-            top_ks=top_ks,
-        )
+
     if return_hidden_states:
         return next_tokens, logits, all_hidden_states
     return next_tokens, logits
