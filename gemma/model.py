@@ -580,17 +580,17 @@ class GemmaForCausalLM(nn.Module):
 
     if self.config.architecture == gemma_config.Architecture.GEMMA_3:
       freqs_cis[gemma_config.AttentionType.LOCAL_SLIDING] = (
-                self.local_freqs_cis.index_select(0, input_positions)
+                self.local_freqs_cis[input_positions]
             )
       freqs_cis[gemma_config.AttentionType.GLOBAL] = (
-                self.global_freqs_cis.index_select(0, input_positions)
+                self.global_freqs_cis[input_positions]
             )
     else:
       freqs_cis[gemma_config.AttentionType.LOCAL_SLIDING] = (
-                self.freqs_cis.index_select(0, input_positions)
+                self.freqs_cis[input_positions]
             )
       freqs_cis[gemma_config.AttentionType.GLOBAL] = (
-                self.freqs_cis.index_select(0, input_positions)
+                self.freqs_cis[input_positions]
             )
 
     kv_write_indices = input_positions
