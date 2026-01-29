@@ -491,7 +491,9 @@ class GemmaModel(nn.Module):
         kv_caches: List[Tuple[torch.Tensor, torch.Tensor]],
         mask: torch.Tensor,
         local_mask: torch.Tensor,
-    ) -> torch.Tensor:
+        output_hidden_states: bool = False,
+    ) -> Union[torch.Tensor, Tuple[torch.Tensor, List[torch.Tensor]]]:
+        all_hidden_states = []
         for i in range(len(self.layers)):
             layer = self.layers[i]
             hidden_states = layer(
@@ -499,10 +501,13 @@ class GemmaModel(nn.Module):
                 freqs_cis=freqs_cis.get(layer.attn_type),
                 kv_write_indices=kv_write_indices,
                 kv_cache=kv_caches[i],
-                mask=mask,
                 local_mask=local_mask,
             )
+            if output_hidden_states:
+                all_hidden_states.append(hidden_states)
         hidden_states = self.norm(hidden_states)
+        if output_hidden_states:
+            return hidden_states, all_hidden_states
         return hidden_states
 
 
@@ -568,8 +573,9 @@ class GemmaForCausalLM(nn.Module):
         top_ps: torch.Tensor,
         top_ks: torch.Tensor,
         local_mask: torch.Tensor | None = None,
+        return_hidden_states: bool = False,
         **kwargs,
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    ) -> Union[Tuple[torch.Tensor, torch.Tensor], Tuple[torch.Tensor, torch.Tensor, List[torch.Tensor]]]:
     freqs_cis = {}
 
     if self.config.architecture == gemma_config.Architecture.GEMMA_3:
@@ -604,7 +610,12 @@ class GemmaForCausalLM(nn.Module):
             kv_caches=kv_caches,
             mask=mask,
             local_mask=local_mask,
+            output_hidden_states=return_hidden_states,
         )
+    
+    if return_hidden_states:
+        hidden_states, all_hidden_states = hidden_states
+
     embedder_weight = self.embedder.weight
     if self.config.quant:
       embedder_weight = (
@@ -617,6 +628,10 @@ class GemmaForCausalLM(nn.Module):
             top_ps=top_ps,
             top_ks=top_ks,
         )
+            top_ks=top_ks,
+        )
+    if return_hidden_states:
+        return next_tokens, logits, all_hidden_states
     return next_tokens, logits
 
   def generate(
