@@ -594,7 +594,7 @@ class GemmaForCausalLM(nn.Module):
                 self.freqs_cis[input_positions]
             )
 
-    kv_write_indices = input_positions
+
 
     # [batch_size, input_len, hidden_size]
     hidden_states = self.embedder(input_token_ids)
