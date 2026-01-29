@@ -209,6 +209,12 @@ def train(args):
                 past = mem_hidden[:, :-k, :].detach() # Stop gradient on past
                 
                 loss_mem = F.l1_loss(current, past)
+                # DEBUG PRINT
+                if step % 10 == 0:
+                     print(f"DEBUG: MemWeight={args.memory_weight}, Layer={layer_idx}, K={k}")
+                     print(f"DEBUG: Current mean={current.mean().item():.6f}, Past mean={past.mean().item():.6f}")
+                     print(f"DEBUG: Diff mean={torch.abs(current-past).mean().item():.6f}")
+                     print(f"DEBUG: LossMem={loss_mem.item():.6f}")
             else:
                 loss_mem = torch.tensor(0.0, device=device)
 
