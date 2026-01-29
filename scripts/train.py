@@ -141,8 +141,16 @@ def train(args):
                 temperatures=None,
                 top_ps=torch.tensor([1.0], device=device),
                 top_ks=torch.tensor([100], device=device),
+                top_ks=torch.tensor([100], device=device),
                 return_hidden_states=True
             )
+            
+            # DEBUG: Check if inputs or weights are zero
+            if step == 0:
+                 print(f"DEBUG: Input IDs sample: {input_ids[0, :10]}")
+                 print(f"DEBUG: Embedder weight mean: {model.embedder.weight.mean().item()}")
+                 print(f"DEBUG: All Hidden States 0 mean: {all_hidden_states[0].abs().mean().item()}")
+                 print(f"DEBUG: All Hidden States -1 mean: {all_hidden_states[-1].abs().mean().item()}")
             
             # The last hidden state is the one used for prediction.
             # But wait, GemmaModel loop returns `hidden_states` which is the output of the last block.
