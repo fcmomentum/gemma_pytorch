@@ -501,6 +501,7 @@ class GemmaModel(nn.Module):
                 freqs_cis=freqs_cis.get(layer.attn_type),
                 kv_write_indices=kv_write_indices,
                 kv_cache=kv_caches[i],
+                mask=mask,
                 local_mask=local_mask,
             )
             if output_hidden_states:

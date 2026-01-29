@@ -34,8 +34,10 @@ class SplitBrainDataset(Dataset):
         
         os.makedirs(cache_dir, exist_ok=True)
         
+        
+        import hashlib
         # Determine unique cache name based on path
-        path_hash = str(abs(hash(data_path + split)))
+        path_hash = hashlib.md5((data_path + split).encode('utf-8')).hexdigest()
         cache_path = os.path.join(cache_dir, f"dataset_{split}_{path_hash}.pkl")
 
         if os.path.exists(cache_path) and not force_process:
