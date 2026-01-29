@@ -309,6 +309,39 @@ def get_config_for_27b_v3(dtype: str) -> GemmaConfig:
   )
 
 
+def get_config_for_270m(dtype: str) -> GemmaConfig:
+  return GemmaConfig(
+      dtype=dtype,
+      architecture=Architecture.GEMMA_3,
+      num_hidden_layers=12,
+      num_attention_heads=16,
+      num_key_value_heads=8, # Inferred, could be 16 or 4
+      hidden_size=1024,
+      intermediate_size=4096, # 4 * hidden typically
+      use_pre_ffw_norm=True,
+      use_post_ffw_norm=True,
+      head_dim=64, # 1024 / 16
+      attn_types=(
+          AttentionType.LOCAL_SLIDING,
+          AttentionType.LOCAL_SLIDING,
+          AttentionType.LOCAL_SLIDING,
+          AttentionType.LOCAL_SLIDING,
+          AttentionType.LOCAL_SLIDING,
+          AttentionType.GLOBAL,
+      ) * 2, # 12 layers
+      sliding_window_size=512,
+      rope_wave_length={
+          AttentionType.LOCAL_SLIDING: 10_000,
+          AttentionType.GLOBAL: 1_000_000,
+      },
+      vocab_size=262_144,
+      max_position_embeddings=32_768,
+      tokenizer='tokenizer/gemma3_cleaned_262144_v2.spiece.model',
+      use_qk_norm=True,
+      vision_config=None,
+  )
+
+
 def get_model_config(variant: str, dtype: str = 'bfloat16') -> GemmaConfig:
   """Gets the GemmaConfig for the diresired variant and dtype."""
   # Gemma1 variants
@@ -324,6 +357,8 @@ def get_model_config(variant: str, dtype: str = 'bfloat16') -> GemmaConfig:
   elif variant == '27b':
     return get_config_for_27b(dtype)
   # Gemma3 variants
+  elif variant == '270m':
+    return get_config_for_270m(dtype)
   elif variant == '1b':
     return get_config_for_1b(dtype)
   elif variant == '4b':
@@ -335,6 +370,6 @@ def get_model_config(variant: str, dtype: str = 'bfloat16') -> GemmaConfig:
   # Invalid variants
   else:
     raise ValueError(
-        f'Invalid variant {variant}. Supported variants are "1b", "2b", '
+        f'Invalid variant {variant}. Supported variants are "270m", "1b", "2b", '
         '"2b-v2", "4b",, "7b", "9b" "12b", "27b", and "27b_v3".'
     )
