@@ -141,7 +141,7 @@ def train(args):
                 temperatures=None,
                 top_ps=torch.tensor([1.0], device=device),
                 top_ks=torch.tensor([100], device=device),
-                top_ks=torch.tensor([100], device=device),
+
                 return_hidden_states=True
             )
             
